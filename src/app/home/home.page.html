@@ -7,12 +7,30 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Agregar ToDo -->
   <ion-card>
     <ion-card-content>
       <form [formGroup]="formToDo" (ngSubmit)="addToDo()">
         <ion-item>
           <ion-input formControlName="todofield" placeholder="Nueva Tarea"></ion-input>
         </ion-item>
+        <ion-item>
+          <ion-label>Categoría: </ion-label>
+          <ion-select formControlName="typefield">
+            <ng-container *ngFor="let type of typeList">
+              <ion-select-option [value]="type">{{type}}</ion-select-option>
+            </ng-container>
+
+          </ion-select>
+          <ion-button
+            *ngIf="formToDo?.get('typefield')?.value !== 'Otro...' && typeList.includes(formToDo?.get('typefield')?.value)"
+            fill="clear" color="danger" (click)="removeType(formToDo.get('typefield')?.value)">Eliminar
+            categoría</ion-button>
+        </ion-item>
+        <ion-item *ngIf="formToDo?.get('typefield')?.value === 'Otro...'">
+          <ion-input formControlName="typecustomfield" placeholder="Ingrese una nueva categoría"></ion-input>
+        </ion-item>
+
         <ion-card-content>
           <ion-button type="submit">Agregar</ion-button>
         </ion-card-content>
@@ -21,17 +39,34 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngFor="let todo of todoList">
-    <ion-card-header [ngClass]="{'done': todo.completed}">
-      <ion-item>
-        <ion-label>{{todo.name}}</ion-label>
-      </ion-item>
-    </ion-card-header>
+  <!-- Filtro -->
+  <ion-card>
+    <ion-item>
+      <ion-label>Filtrar por categoría: </ion-label>
+      <ion-select [ngModel]="filterValue" (ionChange)="setFilter($event)">
+        <ng-container *ngFor="let type of getFilterValues()">
+          <ion-select-option *ngIf="type !== 'Otro...'" [value]="type">{{type}}</ion-select-option>
+        </ng-container>
+      </ion-select>
+      <ion-button *ngIf="filterValue" fill="clear" color="secondary" (click)="resetFilter()">Mostrar todos</ion-button>
+    </ion-item>
+  </ion-card>
 
-    <ion-card-content>
-      <ion-button fill="clear" color="secondary" (click)="completeToDo(todo.id)">Completar</ion-button>
-      <ion-button fill="clear" color="danger" (click)="deleteToDo(todo.id)">Eliminar</ion-button>
-    </ion-card-content>
+  <!-- Lista de ToDos -->
+  <ion-card *ngFor="let todo of todoList">
+    <ng-container *ngIf="filterValue === '' || todo.type === filterValue">
+      <ion-card-header [ngClass]="{'done': todo.completed}">
+        <ion-item>
+          <ion-label>{{todo.name}}</ion-label>
+        </ion-item>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-button fill="clear" color="secondary" (click)="completeToDo(todo.id)">Completar</ion-button>
+        <ion-button fill="clear" color="danger" (click)="deleteToDo(todo.id)">Eliminar</ion-button>
+        <ion-label class="labelType">Categoría: {{todo.type}}</ion-label>
+      </ion-card-content>
+    </ng-container>
 
   </ion-card>
 </ion-content>
